@@ -75,7 +75,11 @@ dev-postgres13: start-postgres13
 start-cockroach:
 	docker-compose -f docker-compose.yml up -d --remove-orphans cockroach
 	docker exec -d prisma-engines_cockroach_1 cockroach sql --insecure -e "set cluster setting sql.defaults.default_int_size = 4;"
-	docker exec -d prisma-engines_cockroach_1 cockroach sql --insecure -e "set cluster setting sql.defaults.serial_normalization = 'sql_sequence_cached';"
+	docker exec -d prisma-engines_cockroach_1 cockroach sql --insecure -e "set cluster setting sql.defaults.serial_normalization = 'sql_sequence';"
+	docker exec -d prisma-engines_cockroach_1 cockroach sql --insecure -e "SET CLUSTER SETTING schemachanger.backfiller.buffer_increment = '128 KiB';"
+	docker exec -d prisma-engines_cockroach_1 cockroach sql --insecure -e "SET CLUSTER SETTING sql.catalog.unsafe_skip_system_config_trigger = true;"
+	docker exec -d prisma-engines_cockroach_1 cockroach sql --insecure -e "SET CLUSTER SETTING sql.defaults.propagate_input_ordering.enabled = false;"
+	docker exec -d prisma-engines_cockroach_1 cockroach sql --insecure -e "ALTER RANGE default CONFIGURE ZONE USING gc.ttlseconds = '10s';"
 
 dev-cockroach: start-cockroach
 	echo 'cockroach' > current_connector

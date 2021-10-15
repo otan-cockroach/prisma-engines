@@ -131,7 +131,7 @@ impl<'a> SqlSchemaDescriber<'a> {
     }
 
     fn is_cockroach(&self) -> bool {
-        self.circumstances.contains(Circumstances::Cockroach)
+        true // self.circumstances.contains(Circumstances::Cockroach)
     }
 
     #[tracing::instrument]

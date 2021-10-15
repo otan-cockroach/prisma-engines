@@ -383,6 +383,11 @@ impl SqlFlavour for MysqlFlavour {
         Ok(())
     }
 
+
+    async fn qe_teardown(&self, database_str: &str) -> ConnectorResult<()> {
+        Ok(())
+    }
+
     async fn reset(&self, connection: &Connection) -> ConnectorResult<()> {
         if self.is_vitess() {
             return Err(ConnectorError::from_msg(

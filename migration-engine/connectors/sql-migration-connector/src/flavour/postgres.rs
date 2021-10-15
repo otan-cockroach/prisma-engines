@@ -94,7 +94,7 @@ impl PostgresFlavour {
 impl SqlFlavour for PostgresFlavour {
     async fn acquire_lock(&self, connection: &Connection) -> ConnectorResult<()> {
         // https://www.postgresql.org/docs/current/explicit-locking.html#ADVISORY-LOCKS
-
+/*
         // 72707369 is a unique number we chose to identify Migrate. It does not
         // have any meaning, but it should not be used by any other tool.
         tokio::time::timeout(
@@ -115,7 +115,7 @@ impl SqlFlavour for PostgresFlavour {
                 ),
             })
         })??;
-
+*/
         Ok(())
     }
 
@@ -329,6 +329,20 @@ impl SqlFlavour for PostgresFlavour {
             schema = schema
         );
         conn.raw_cmd(&drop_and_recreate_schema).await?;
+
+        Ok(())
+    }
+
+    async fn qe_teardown(&self, database_str: &str) -> ConnectorResult<()> {
+        let mut url = Url::parse(database_str).map_err(ConnectorError::url_parse_error)?;
+
+        strip_schema_param_from_url(&mut url);
+        let conn = create_postgres_admin_conn(url.clone()).await?;
+        let schema = self.url.schema();
+        let db_name = self.url.dbname();
+
+        let query = format!("DROP DATABASE \"{}\" CASCADE", db_name);
+        conn.raw_cmd(&query).await.ok();
 
         Ok(())
     }

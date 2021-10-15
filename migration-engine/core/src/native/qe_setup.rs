@@ -47,3 +47,27 @@ pub async fn run(prisma_schema: &str) -> CoreResult<()> {
     api.schema_push(&schema_push_input).await?;
     Ok(())
 }
+
+/// Database setup for connector-test-kit.
+pub async fn teardown(prisma_schema: &str) -> CoreResult<()> {
+    let (source, url, preview_features, _shadow_database_url) = super::parse_configuration(prisma_schema)?;
+
+    match &source.active_provider {
+        provider
+        if [
+            MYSQL_SOURCE_NAME,
+            POSTGRES_SOURCE_NAME,
+            SQLITE_SOURCE_NAME,
+            MSSQL_SOURCE_NAME,
+        ]
+            .contains(&provider.as_str()) =>
+            {
+                // 1. creates schema & database
+                SqlMigrationConnector::qe_teardown(&url).await?;
+            }
+        #[cfg(feature = "mongodb")]
+        provider if provider == MONGODB_SOURCE_NAME => {}
+        x => unimplemented!("Connector {} is not supported yet", x),
+    };
+    Ok(())
+}
